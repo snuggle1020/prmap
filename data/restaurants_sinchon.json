@@ -1,0 +1,18 @@
+[
+{
+  "id": 9,
+  "name": "단정 현대백화점 신촌점",
+  "address": "서울 서대문구 신촌로 83 현대백화점 신촌점 지하1층",
+  "lat": 37.5559992,
+  "lng": 126.9358069,
+  "category": "한식",
+  "priceRange": "단품 1만원대",
+  "parking": true,
+  "reservation": "전화 예약",
+  "naverUrl": "https://naver.me/5GvN8zKd",
+  "hasRoom": false,
+  "notes": "",
+  "image": "./images/단정.jpg",
+  "menuImage": "./images/단정_메뉴.jpg"
+}
+]

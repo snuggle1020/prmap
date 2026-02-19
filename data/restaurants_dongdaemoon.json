@@ -1,0 +1,18 @@
+[
+{
+  "id": 1,
+  "name": "무화서울",
+  "address": "서울 중구 퇴계로63길 10",
+  "lat": 37.5649246,
+  "lng": 127.0086973,
+  "category": "한식",
+  "priceRange": "단품 1만원대",
+  "parking": true,
+  "reservation": "네이버 예약",
+  "naverUrl": "https://naver.me/5GvN8zKd",
+  "hasRoom": false,
+  "notes": "",
+  "image": "./images/무화서울.jpg",
+  "menuImage": "./images/무화서울_메뉴.png"
+}
+]

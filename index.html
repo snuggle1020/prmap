@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html class="light" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PR MAP - 비즈니스 미팅을 위한 식당</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#137fec",
+                    "background-light": "#f6f7f8",
+                    "background-dark": "#101922",
+                },
+                fontFamily: {
+                    "display": ["Inter", "sans-serif", "Noto Sans KR"]
+                },
+                borderRadius: {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+                },
+            },
+        },
+    }
+</script>
+<style type="text/tailwindcss">
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .fill-icon {
+        font-variation-settings: 'FILL' 1;
+    }
+    body {
+        font-family: 'Inter', 'Noto Sans KR', sans-serif;
+    }
+    .sidebar-scroll {
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .sidebar-scroll::-webkit-scrollbar {
+        display: none;
+    }
+    #image-modal-toggle:checked ~ #image-modal {
+        display: flex;
+    }
+</style>
+</head>
+<body class="bg-background-light text-slate-900 font-display">
+
+<input class="hidden" id="image-modal-toggle" type="checkbox"/>
+
+<div class="flex flex-col h-screen overflow-hidden">
+    <!-- 헤더 -->
+    <header class="flex items-center justify-between border-b border-solid border-slate-200 bg-white px-6 py-3 shrink-0">
+        <div class="flex items-center gap-3 text-primary shrink-0">
+            <div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                <span class="material-symbols-outlined">map</span>
+            </div>
+            <h2 class="text-slate-900 text-lg font-bold leading-tight tracking-[-0.015em]">PR MAP</h2>
+        </div>
+        <div class="flex items-center justify-end w-full">
+        <div class="relative w-full md:w-1/4 md:min-w-[220px]">
+  <label class="flex flex-col w-full h-10">
+    <div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
+      <div class="text-slate-400 flex border-none bg-slate-100 items-center justify-center pl-4 rounded-l-lg">
+        <span class="material-symbols-outlined text-xl">search</span>
+      </div>
+      <input
+        id="searchInput"
+        class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 focus:ring-0 h-full placeholder:text-slate-400 px-4 text-sm font-normal"
+        placeholder="지역 검색 (예: 여의도역)"
+        value=""
+        autocomplete="off"
+      />
+      <button
+        id="clearSearch"
+        onclick="clearSearch()"
+        class="hidden text-slate-400 hover:text-slate-600 bg-slate-100 items-center justify-center pr-4 transition-colors"
+        type="button"
+      >
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+    </div>
+  </label>
+
+  <div
+    id="placeDropdown"
+    class="absolute top-full left-0 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden z-[60] hidden"
+  >
+    <div class="px-3 py-1.5 border-b border-slate-100">
+      <h3 class="text-[9px] font-semibold text-slate-400 tracking-wide">
+        검색 가능한 지역
+      </h3>
+    </div>
+    <div id="placeOptions" class="flex flex-col max-h-72 overflow-auto"></div>
+  </div>
+</div>
+
+        </div>
+    </header>
+
+    <main class="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <!-- 사이드바 -->
+        <aside class="w-full md:w-[420px] bg-white border-r border-slate-200 flex flex-col shrink-0 max-h-[50vh] md:max-h-full">
+  <div class="p-4 border-b border-slate-200">
+    <div class="flex items-center justify-between mb-3">
+        <h1 class="text-slate-900 text-sm font-bold tracking-tight">필터</h1>
+        <button onclick="resetFilters()" class="text-slate-400 hover:text-primary text-xs font-semibold flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-sm">restart_alt</span>초기화
+        </button>
+    </div>
+    
+    <div class="flex gap-2 mb-3">
+        <button id="filter-naver" onclick="toggleFilter('naver')" class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-full border border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary transition-all text-xs font-bold">
+            <span class="material-symbols-outlined text-base">calendar_today</span>
+            네이버 예약
+        </button>
+        <button id="filter-room" onclick="toggleFilter('room')" class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-full border border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary transition-all text-xs font-bold">
+            <span class="material-symbols-outlined text-base fill-icon">meeting_room</span>
+            룸
+        </button>
+        <button id="filter-parking" onclick="toggleFilter('parking')" class="flex-1 flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-full border border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary transition-all text-xs font-bold">
+            <span class="material-symbols-outlined text-base">local_parking</span>
+            주차
+        </button>
+    </div>
+    
+   
+        <div class="flex w-full border border-slate-200 rounded-xl overflow-hidden divide-x divide-slate-200">
+            <button id="cuisine-korean" onclick="toggleCuisineFilter('korean')" class="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 bg-white text-slate-600 hover:bg-slate-50 transition-all">
+                <span class="material-symbols-outlined text-lg">rice_bowl</span>
+                <span class="text-[11px] font-bold">한식</span>
+            </button>
+            <button id="cuisine-japanese" onclick="toggleCuisineFilter('japanese')" class="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 bg-white text-slate-600 hover:bg-slate-50 transition-all">
+                <span class="material-symbols-outlined text-lg">set_meal</span>
+                <span class="text-[11px] font-bold">일식</span>
+            </button>
+            <button id="cuisine-chinese" onclick="toggleCuisineFilter('chinese')" class="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 bg-white text-slate-600 hover:bg-slate-50 transition-all">
+                <span class="material-symbols-outlined text-lg">ramen_dining</span>
+                <span class="text-[11px] font-bold">중식</span>
+            </button>
+            <button id="cuisine-western" onclick="toggleCuisineFilter('western')" class="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 bg-white text-slate-600 hover:bg-slate-50 transition-all">
+                <span class="material-symbols-outlined text-lg">dinner_dining</span>
+                <span class="text-[11px] font-bold">양식</span>
+            </button>
+            <button id="cuisine-etc" onclick="toggleCuisineFilter('etc')" class="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 bg-white text-slate-600 hover:bg-slate-50 transition-all">
+                <span class="material-symbols-outlined text-lg">restaurant</span>
+                <span class="text-[11px] font-bold">기타</span>
+            </button>
+        </div>
+    </div>
+
+            
+            <div class="flex-1 overflow-y-auto sidebar-scroll bg-slate-50 p-4 space-y-4" id="restaurantList">
+                <div class="px-1 mb-1">
+                    <h3 class="text-slate-900 text-sm font-bold" id="resultStatus">검색을 시작하세요</h3>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 지도 영역 -->
+        <section class="flex-1 relative bg-slate-200" id="mapContainer"></section>
+    </main>
+</div>
+
+<!-- 이미지 모달 -->
+<div class="fixed inset-0 z-50 hidden items-center justify-center bg-black/95 backdrop-blur-sm px-4" id="image-modal">
+    <label class="absolute top-6 right-8 text-white/70 hover:text-white cursor-pointer transition-colors p-2 z-[60]" for="image-modal-toggle">
+        <span class="material-symbols-outlined text-4xl">close</span>
+    </label>
+    
+    <button id="prevImageBtn" class="absolute left-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors p-2 z-[60]">
+    <span class="material-symbols-outlined text-5xl">chevron_left</span>
+</button>
+<button id="nextImageBtn" class="absolute right-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors p-2 z-[60]">
+    <span class="material-symbols-outlined text-5xl">chevron_right</span>
+</button>
+    <div class="max-w-5xl w-full h-[80vh] flex flex-col items-center justify-center relative">
+        <img alt="Restaurant View" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" id="modalImage"/>
+        <div class="absolute bottom-[-60px] left-0 w-full text-center">
+            <h3 class="text-white text-base font-bold mb-1" id="modalTitle">식당 이미지</h3>
+            <p class="text-white/60 text-xs" id="modalCounter">1 / 2</p>
+        </div>
+    </div>
+</div>
+
+<!-- 카카오 지도 SDK -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=0c7c14fe51000ac7bc5b043cec3be9b9"></script>
+
+<script>
+let map;
+let markers = [];
+let overlays = [];
+let currentOverlay = null;
+let currentImages = [];
+let currentImageIndex = 0;
+let allResults = []; // 전체 검색 결과 저장
+let restaurantCache = {};
+let cachedPlaces = null;
+let activeFilters = {
+    naver: false,
+    room: false,
+    parking: false,
+    cuisine: null
+};
+const restaurantFileMap = {
+  "여의도역": "./data/restaurants_yeouido.json",
+  "강남역": "./data/restaurants_gangnam.json",
+  "광화문역": "./data/restaurants_gwanghwamun.json",
+  "당산역": "./data/restaurants_dangsan.json",
+  "국회의사당역": "./data/restaurants_gukhoe.json",
+  "충무로역": "./data/restaurants_chungmuro.json",
+  "합정역": "./data/restaurants_habjung.json",
+  "동대문역사공원역": "./data/restaurants_dongdaemoon.json",
+  "신촌역": "./data/restaurants_sinchon.json" 
+};
+
+// ✅ 검색 가능한 지역 드롭다운
+let placeNames = []; // places.json에서 읽어서 채움
+
+function renderPlaceOptions(list) {
+  const optionsEl = document.getElementById("placeOptions");
+  if (!optionsEl) return;
+
+  if (list.length === 0) {
+    optionsEl.innerHTML = `
+      <div class="px-3 py-2 text-xs text-slate-400">
+        일치하는 지역이 없습니다
+      </div>`;
+    return;
+  }
+
+  optionsEl.innerHTML = list.map((name, idx) => `
+    <button
+      type="button"
+      class="w-full px-3 py-2 text-left hover:bg-slate-50 transition-colors flex items-center gap-2 border-t border-slate-50 ${idx === 0 ? "border-t-0" : ""}"
+      data-name="${name}"
+    >
+      <span class="material-symbols-outlined text-slate-300 text-lg">location_on</span>
+      <span class="text-[13px] font-medium text-slate-800">${name}</span>
+    </button>
+  `).join("");
+}
+
+function openDropdown() {
+  const dropdown = document.getElementById("placeDropdown");
+  if (!dropdown) return;
+  dropdown.classList.remove("hidden");
+}
+
+function closeDropdown() {
+  const dropdown = document.getElementById("placeDropdown");
+  if (!dropdown) return;
+  dropdown.classList.add("hidden");
+}
+
+// X 버튼 표시/숨김
+function toggleClearButton() {
+  const input = document.getElementById("searchInput");
+  const clearBtn = document.getElementById("clearSearch");
+  if (input.value.trim()) {
+    clearBtn.classList.remove("hidden");
+    clearBtn.classList.add("flex");
+  } else {
+    clearBtn.classList.add("hidden");
+    clearBtn.classList.remove("flex");
+  }
+}
+
+// 검색창 초기화
+function clearSearch() {
+  const input = document.getElementById("searchInput");
+  input.value = "";
+  toggleClearButton();
+  closeDropdown();
+  
+  // 전체 식당 다시 표시
+  loadAllRestaurants();
+}
+
+async function initPlaceDropdown() {
+  try {
+    const places = await loadJSON("./data/places.json");
+    placeNames = places.map(p => p.name);
+    renderPlaceOptions(placeNames);
+  } catch (e) {
+    console.error("places.json 로드 실패:", e);
+  }
+}
+
+function bindPlaceDropdownEvents() {
+  const input = document.getElementById("searchInput");
+  const dropdown = document.getElementById("placeDropdown");
+  const optionsEl = document.getElementById("placeOptions");
+  if (!input || !dropdown || !optionsEl) return;
+
+  // 포커스하면 전체 목록 열기
+  input.addEventListener("focus", () => {
+    renderPlaceOptions(placeNames);
+    openDropdown();
+  });
+
+  // 입력할 때 X 버튼 표시
+  input.addEventListener("input", () => {
+    toggleClearButton();
+  });
+
+  // 옵션 클릭
+  optionsEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-name]");
+    if (!btn) return;
+    input.value = btn.dataset.name;
+    toggleClearButton();
+    closeDropdown();
+    runSearch();
+  });
+
+  // 바깥 클릭하면 닫기
+  document.addEventListener("click", (e) => {
+    const wrapper = input.closest(".relative");
+    if (wrapper && wrapper.contains(e.target)) return;
+    closeDropdown();
+  });
+}
+
+// 카드 내 이미지 슬라이더 ← 여기에 추가!
+function slideCardImage(cardId, direction) {
+    const card = document.getElementById(cardId);
+    const slider = card.querySelector('.image-slider');
+    const images = slider.querySelectorAll('.slide-image');
+    
+    let currentIndex = parseInt(slider.dataset.currentIndex || 0);
+    currentIndex = (currentIndex + direction + images.length) % images.length;
+    
+    slider.dataset.currentIndex = currentIndex;
+    slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+    
+    // 인디케이터 업데이트
+    const indicators = card.querySelectorAll('.slide-indicator');
+    indicators.forEach((ind, idx) => {
+        if (idx === currentIndex) {
+            ind.classList.add('bg-white');
+            ind.classList.remove('bg-white/40');
+        } else {
+            ind.classList.remove('bg-white');
+            ind.classList.add('bg-white/40');
+        }
+    });
+}
+
+// 필터 토글
+function toggleFilter(filterName) {
+    activeFilters[filterName] = !activeFilters[filterName];
+    
+    // 버튼 스타일 업데이트
+    const button = document.getElementById(`filter-${filterName}`);
+    
+    if (activeFilters[filterName]) {
+        button.classList.remove('border-slate-200', 'bg-white', 'text-slate-600');
+        button.classList.add('border-primary', 'bg-primary', 'text-white');
+    } else {
+        button.classList.remove('border-primary', 'bg-primary', 'text-white');
+        button.classList.add('border-slate-200', 'bg-white', 'text-slate-600');
+    }
+    
+    // 필터 적용
+    applyFilters();
+}
+
+// 필터 초기화
+function resetFilters() {
+    activeFilters = { naver: false, room: false, parking: false };
+    
+    // 모든 버튼 초기화
+    ['filter-naver', 'filter-room', 'filter-parking'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.classList.remove('border-primary', 'bg-primary', 'text-white');
+        btn.classList.add('border-slate-200', 'bg-white', 'text-slate-600');
+    });
+
+    // 음식 종류 버튼 초기화
+    ['cuisine-korean', 'cuisine-japanese', 'cuisine-chinese', 'cuisine-western', 'cuisine-etc'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.classList.remove('bg-primary', 'text-white');
+        btn.classList.add('bg-white', 'text-slate-600');
+    });
+    // 전체 목록 표시
+    applyFilters();
+}
+
+// 음식 종류 필터 토글
+function toggleCuisineFilter(cuisineType) {
+    if (activeFilters.cuisine === cuisineType) {
+        activeFilters.cuisine = null;
+    } else {
+        activeFilters.cuisine = cuisineType;
+    }
+    
+    ['cuisine-korean', 'cuisine-japanese', 'cuisine-chinese', 'cuisine-western', 'cuisine-etc'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.classList.remove('bg-primary', 'text-white');
+        btn.classList.add('bg-white', 'text-slate-600');
+    });
+    
+    if (activeFilters.cuisine) {
+        const selectedBtn = document.getElementById(`cuisine-${cuisineType}`);
+        selectedBtn.classList.remove('bg-white', 'text-slate-600');
+        selectedBtn.classList.add('bg-primary', 'text-white');
+    }
+    
+    applyFilters();
+}
+
+// 필터 적용
+function applyFilters() {
+    if (allResults.length === 0) return;
+    
+    let filtered = allResults;
+    
+    // 네이버 예약 필터
+    if (activeFilters.naver) {
+        filtered = filtered.filter(r => r.reservation && r.reservation.includes('네이버'));
+    }
+    
+    // 룸 여부 필터
+    if (activeFilters.room) {
+        filtered = filtered.filter(r => r.hasRoom === true);
+    }
+    
+    // 주차 필터
+    if (activeFilters.parking) {
+        filtered = filtered.filter(r => r.parking === true);
+    }
+    // 음식 종류 필터
+    if (activeFilters.cuisine) {
+        filtered = filtered.filter(r => {
+            if (!r.category) return activeFilters.cuisine === 'etc';
+            if (r.category === '한식') return activeFilters.cuisine === 'korean';
+            if (r.category === '일식') return activeFilters.cuisine === 'japanese';
+            if (r.category === '중식') return activeFilters.cuisine === 'chinese';
+            if (r.category === '양식') return activeFilters.cuisine === 'western';
+            return activeFilters.cuisine === 'etc';
+        });
+    }
+    
+    // 결과 개수 업데이트
+    const statusEl = document.getElementById("resultStatus");
+    const searchQuery = document.getElementById("searchInput").value.trim();
+    statusEl.textContent = `${searchQuery} 검색결과 ${filtered.length}건`;
+    
+    // 목록 다시 렌더링
+    renderRestaurantList(filtered);
+    
+    // 마커 다시 표시
+    clearMarkers();
+    filtered.forEach((r, idx) => addMarker(r.lat, r.lng, r, idx));
+}
+
+// 이미지 모달 함수
+function openImageModal(images, restaurantName, startIndex) {
+    currentImages = images;
+    currentImageIndex = startIndex !== undefined ? startIndex : 0;
+    document.getElementById('modalTitle').textContent = restaurantName;
+    showCurrentImage();
+    document.getElementById('image-modal-toggle').checked = true;
+}
+
+function showCurrentImage() {
+    const img = document.getElementById('modalImage');
+    const counter = document.getElementById('modalCounter');
+    img.src = currentImages[currentImageIndex];
+    counter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+}
+
+function prevImage() {
+    currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+    showCurrentImage();
+}
+
+function nextImage() {
+    currentImageIndex = (currentImageIndex + 1) % currentImages.length;
+    showCurrentImage();
+}
+
+// JSON 데이터 로드
+async function loadJSON(path) {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`${path} 로드 실패 (status ${res.status})`);
+    return await res.json();
+}
+
+// 지도 초기화
+function ensureMap(lat, lng, level = 4) {  // 🔥 level 파라미터 추가
+    const container = document.getElementById("mapContainer");
+    const center = new kakao.maps.LatLng(lat, lng);
+
+    if (!map) {
+        map = new kakao.maps.Map(container, {
+            center,
+            level: level  // 🔥 4 → level로 변경
+        });
+    } else {
+        map.setCenter(center);
+        map.setLevel(level);  // 🔥 4 → level로 변경
+    }
+}
+
+// 마커 제거
+function clearMarkers() {
+    markers.forEach(m => m.setMap(null));
+    markers = [];
+    overlays = [];
+    if (currentOverlay) {
+        currentOverlay.setMap(null);
+        currentOverlay = null;
+    }
+}
+
+// 거리 계산
+function approxDistanceMeters(aLat, aLng, bLat, bLng) {
+    const dx = (aLat - bLat) * 111000;
+    const dy = (aLng - bLng) * 88000;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+// 오버레이 닫기
+window.closeOverlay = function() {
+    if (currentOverlay) {
+        currentOverlay.setMap(null);
+        currentOverlay = null;
+    }
+};
+
+// 특정 마커의 오버레이 열기 함수
+function openOverlay(index) {
+    if (currentOverlay) {
+        currentOverlay.setMap(null);
+    }
+    
+    if (overlays[index]) {
+        overlays[index].setMap(map);
+        currentOverlay = overlays[index];
+    }
+}
+
+// 마커 추가
+function addMarker(lat, lng, restaurant, index) {
+    const marker = new kakao.maps.Marker({
+        position: new kakao.maps.LatLng(lat, lng),
+        title: restaurant.name
+    });
+    marker.setMap(map);
+    markers.push(marker);
+
+    // 예약 링크
+    const reservationLink = `https://map.naver.com/v5/search/${encodeURIComponent(restaurant.name)}`;
+    const hasAddress = restaurant.address ? true : false;
+    const addressHTML = hasAddress ? `<p style="font-size: 11px; color: #9ca3af; margin: 6px 0 0 0; font-family: 'Inter', 'Noto Sans KR', sans-serif; line-height: 1.4;">${restaurant.address}</p>` : '';
+
+    // 오버레이 HTML
+    const overlayContent = document.createElement('div');
+overlayContent.innerHTML = `
+    <div style="position: relative; background: white; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 16px; min-width: 200px; max-width: 240px;">
+        <button onclick="closeOverlay()" style="position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; border-radius: 50%; background: #f1f5f9; color: #64748b; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">×</button>
+        
+        <h3 style="font-size: 16px; font-weight: 700; color: #1a1a1a; margin: 0 0 2px 0; padding-right: 28px; font-family: 'Inter', 'Noto Sans KR', sans-serif;">${restaurant.name}</h3>
+        <p style="font-size: 11px; color: #94a3b8; margin: 0 0 8px 0; font-family: 'Inter', 'Noto Sans KR', sans-serif;">${restaurant.category || '일식'}</p>
+        
+        <a href="${reservationLink}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 6px; background: #137fec; color: white; text-decoration: none; font-weight: 600; font-size: 13px; border-radius: 10px; font-family: 'Inter', 'Noto Sans KR', sans-serif; transition: background 0.2s;" onmouseover="this.style.background='#0052cc'" onmouseout="this.style.background='#137fec'">
+            예약 바로가기
+            <span style="font-size: 16px;">→</span>
+        </a>
+        
+        <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid white;"></div>
+    </div>
+`;
+
+    // 오버레이 생성
+    const customOverlay = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(lat, lng),
+        content: overlayContent,
+        yAnchor: 1.4,
+        zIndex: 3
+    });
+    
+    overlays.push(customOverlay);
+
+    // 마커 클릭: 오버레이 열기 + 사이드바 스크롤
+    kakao.maps.event.addListener(marker, "click", () => {
+        openOverlay(index);
+        map.panTo(new kakao.maps.LatLng(lat, lng));
+        
+        // 사이드바 스크롤
+        const card = document.getElementById(`card-${index + 1}`);
+        if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.style.boxShadow = '0 0 0 3px #137fec';
+            setTimeout(() => { card.style.boxShadow = ''; }, 1500);
+        }
+    });
+
+    return marker;
+}
+
+// 식당 목록 렌더링 함수
+function renderRestaurantList(results) {
+    const list = document.getElementById("restaurantList");
+    const cards = list.querySelectorAll('.bg-white');
+    cards.forEach(card => card.remove());
+    
+    results.forEach((r, idx) => {
+        const card = document.createElement("div");
+        card.className = "bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer group";
+        card.id = `card-${idx + 1}`;
+        
+        const reservationTag = r.reservation;
+        const roomText = r.hasRoom ? "O" : "X";
+        
+        // 이미지 배열
+        const images = [];
+        if (r.image) images.push(r.image);
+        if (r.menuImage) images.push(r.menuImage);
+        
+        // 이미지가 2개 있을 때: 2분할 레이아웃
+let imageHTML = '';
+if (images.length === 2) {
+    const escapedName = r.name.replace(/"/g, '&quot;');
+    imageHTML = `
+    <div class="relative h-44 overflow-hidden flex gap-1">
+        <div class="w-[60%] h-full bg-slate-200 transition-transform duration-500 group-hover:scale-105 bg-cover bg-center cursor-pointer" 
+     style="background-image: url('${images[0]}');"
+     loading="lazy"
+             onclick='event.stopPropagation(); openImageModal(${JSON.stringify(images)}, "${escapedName}", 0);'>
+        </div>
+        <div class="w-[40%] h-full bg-slate-800 transition-transform duration-500 group-hover:scale-105 bg-cover bg-center cursor-pointer relative flex items-center justify-center" 
+             style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${images[1]}'); background-size: cover; background-position: center;"
+             onclick='event.stopPropagation(); openImageModal(${JSON.stringify(images)}, "${escapedName}", 1);'>
+            <div class="text-white text-center z-10">
+                <span class="material-symbols-outlined text-3xl mb-1 block">restaurant_menu</span>
+                <span class="text-xs font-bold">MENU</span>
+            </div>
+        </div>
+    </div>`;
+}
+        // 이미지가 1개일 때: 기존 레이아웃
+        else if (images.length === 1) {
+    imageHTML = `
+    <div class="relative h-44 overflow-hidden">
+        <div class="w-full h-full bg-slate-200 transition-transform duration-500 group-hover:scale-105 bg-cover bg-center cursor-pointer" 
+             style="background-image: url('${images[0]}');"
+             onclick='event.stopPropagation(); openImageModal(${JSON.stringify(images)}, "${r.name}", 0);'>
+        </div>
+    </div>`;
+}
+        // 이미지가 없을 때
+        else {
+            imageHTML = `
+            <div class="relative h-44 overflow-hidden">
+                <div class="w-full h-full bg-slate-200 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-4xl text-slate-400">restaurant</span>
+                </div>
+            </div>`;
+        }
+        
+        card.innerHTML = `
+            ${imageHTML}
+            <div class="p-4">
+                <h4 class="font-bold text-slate-900 group-hover:text-primary transition-colors text-base mb-1">${r.name}</h4>
+                <p class="text-xs text-slate-500 mb-4">${r.category || ""} • ${r.address || ""}</p>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <div class="flex flex-col items-center justify-center bg-slate-100 px-3 py-2 rounded-lg flex-1 min-w-[80px]">
+                        <span class="text-[9px] text-slate-400 font-medium mb-0.5">예약 방식</span>
+                        <span class="text-[11px] font-bold text-slate-900">${reservationTag}</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center bg-slate-100 px-3 py-2 rounded-lg flex-1 min-w-[80px]">
+                        <span class="text-[9px] text-slate-400 font-medium mb-0.5">룸 여부</span>
+                        <span class="text-[11px] font-bold text-slate-900">${roomText}</span>
+                    </div>
+                    <div class="flex flex-col items-center justify-center bg-slate-100 px-3 py-2 rounded-lg flex-1 min-w-[80px]">
+                        <span class="text-[9px] text-slate-400 font-medium mb-0.5">가격대</span>
+                        <span class="text-[11px] font-bold text-slate-900">${r.priceRange}</span>
+                    </div>
+                </div>
+                ${r.notes ? `
+                <div class="bg-slate-50 rounded-lg p-2.5">
+                    <div class="flex items-start gap-1.5">
+                        <span class="material-symbols-outlined text-sm ${r.notes.includes('추천') ? 'text-green-500' : r.notes.includes('비추천') ? 'text-red-400' : 'text-primary'} fill-icon">${r.notes.includes('추천') ? 'sentiment_satisfied' : r.notes.includes('비추천') ? 'sentiment_dissatisfied' : 'info'}</span>
+                        <p class="text-[12px] leading-relaxed text-slate-600">${r.notes}</p>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        
+        // 카드 클릭 이벤트 (이미지 영역 제외)
+        card.addEventListener('click', (e) => {
+            // 이미지 영역 클릭은 별도 처리되므로 제외
+            if (e.target.closest('[onclick*="openImageModal"]')) return;
+            
+            map.setCenter(new kakao.maps.LatLng(r.lat, r.lng));
+            map.setLevel(3);
+            openOverlay(idx);
+        });
+        
+        list.appendChild(card);
+    });
+     list.scrollTop = 0;
+}
+
+// 검색 실행
+async function runSearch() {
+    const q = document.getElementById("searchInput").value.trim();
+    if (!q) return;
+
+    // 필터 초기화
+    activeFilters = { naver: false, room: false, parking: false, cuisine: null };
+    
+    ['filter-naver', 'filter-room', 'filter-parking'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.classList.remove('border-primary', 'bg-primary', 'text-white');
+        btn.classList.add('border-slate-200', 'bg-white', 'text-slate-600');
+    });
+    
+    ['cuisine-korean', 'cuisine-japanese', 'cuisine-chinese', 'cuisine-western', 'cuisine-etc'].forEach(id => {
+        const btn = document.getElementById(id);
+        btn.classList.remove('bg-primary', 'text-white');
+        btn.classList.add('bg-white', 'text-slate-600');
+    });
+
+    const statusEl = document.getElementById("resultStatus");
+    statusEl.textContent = "로딩 중...";
+
+    try {
+        // 🔥 캐싱 추가! (한 번 로드한 데이터 재사용)
+        if (!cachedPlaces) {
+            cachedPlaces = await loadJSON("./data/places.json");
+        }
+        const places = cachedPlaces;
+        
+        const restaurantFile = restaurantFileMap[q];
+        if (!restaurantFile) {
+            alert(`검색 가능한 지역: ${Object.keys(restaurantFileMap).join(", ")}`);
+            statusEl.textContent = "검색 가능한 지역을 입력하세요";
+            return;
+        }
+        
+        // 🔥 식당 데이터도 캐싱! (같은 지역 다시 검색하면 즉시 표시)
+        if (!restaurantCache[q]) {
+            restaurantCache[q] = await loadJSON(restaurantFile);
+        }
+        const restaurants = restaurantCache[q];
+
+        const place = places.find(p => p.name === q);
+        if (!place) {
+            alert(`places.json에 없는 지역입니다: ${q}`);
+            statusEl.textContent = "지역 없음";
+            return;
+        }
+
+        ensureMap(place.lat, place.lng);
+
+        const results = restaurants
+            .map(r => ({ ...r, _dist: approxDistanceMeters(place.lat, place.lng, r.lat, r.lng) }))
+            .filter(r => r._dist <= (place.radiusMeters ?? 1200))
+            .sort((a, b) => a._dist - b._dist);
+
+        allResults = results;
+        
+        statusEl.textContent = `${q} 검색결과 ${results.length}건`;
+
+        renderRestaurantList(results);
+
+        clearMarkers();
+        results.forEach((r, idx) => addMarker(r.lat, r.lng, r, idx));
+
+    } catch (e) {
+        console.error(e);
+        statusEl.textContent = "오류: " + e.message;
+        alert("오류: " + e.message);
+    }
+}
+
+// 이벤트 리스너
+document.getElementById("searchInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") runSearch();
+});
+
+// 모든 지역 식당 로드 및 표시
+async function loadAllRestaurants() {
+    const statusEl = document.getElementById("resultStatus");
+    statusEl.textContent = "모든 지역 로딩 중...";
+    
+    try {
+        const allRestaurants = [];
+        
+        // 모든 지역의 식당 데이터 로드
+        for (const [region, file] of Object.entries(restaurantFileMap)) {
+            if (!restaurantCache[region]) {
+                restaurantCache[region] = await loadJSON(file);
+            }
+            allRestaurants.push(...restaurantCache[region]);
+        }
+        
+        allResults = allRestaurants;
+        statusEl.textContent = `전체 ${allRestaurants.length}건의 식당`;
+        
+        // 왼쪽 사이드바에 식당 목록 표시 (🔥 이 줄 추가!)
+        renderRestaurantList(allRestaurants);
+
+        // 모든 식당 마커 표시
+        clearMarkers();
+        allRestaurants.forEach((r, idx) => addMarker(r.lat, r.lng, r, idx));
+        
+    } catch (e) {
+        console.error("전체 로드 실패:", e);
+        statusEl.textContent = "로딩 오류";
+    }
+}
+
+// 페이지 로드 시 기본 지도 + 모든 식당 표시
+window.addEventListener('load', () => {
+    ensureMap(37.5665, 126.9780, 8);
+    initPlaceDropdown();
+    bindPlaceDropdownEvents();
+    loadAllRestaurants();
+    
+    // 이미지 모달 버튼 이벤트 리스너
+    const prevBtn = document.getElementById('prevImageBtn');
+    const nextBtn = document.getElementById('nextImageBtn');
+    
+    if (prevBtn && nextBtn) {
+    prevBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();  // 🔥 이 줄 추가!
+        prevImage();
+    });
+    
+    nextBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();  // 🔥 이 줄 추가!
+        nextImage();
+    });
+}
+});
+</script>
+
+</body>
+</html>

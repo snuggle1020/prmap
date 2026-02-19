@@ -1,0 +1,146 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Noto Sans KR", Arial, sans-serif;
+}
+
+.topbar {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+#q {
+  flex: 1;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+#btnSearch {
+  height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  height: 100vh;
+}
+
+.sidebar {
+  padding: 80px 12px 12px;
+  overflow: auto;
+  border-right: 1px solid #eee;
+  background: #fafafa;
+}
+
+.status {
+  margin-bottom: 10px;
+  color: #444;
+  font-size: 13px;
+}
+
+.map {
+  height: 100vh; /* ✅ 이게 없으면 지도 안 보임 */
+}
+
+.item {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.item:hover {
+  border-color: #ccc;
+}
+/* 기존 스타일은 그대로 두고, 아래 내용 추가 */
+
+.item {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.item:hover {
+  background: #f5f5f5;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.item-name {
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: #222;
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 12px;
+  white-space: nowrap;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tag.phone {
+  background: #e3f2fd;
+  color: #000;
+}
+
+.tag.naver {
+  background: #e8f5e9;
+  color: #000;
+}
+
+.tag.room-yes {
+  background: #fff9c4;
+  color: #000;
+}
+
+.tag.room-no {
+  background: #f5f5f5;
+  color: #000;
+}
+
+.tag.price {
+  background: #f3e5f5;
+  color: #000;
+}
+
+.item-notes {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
