@@ -1,0 +1,18 @@
+[
+{
+  "id": 1,
+  "name": "올리브에비뉴",
+  "address": "서울 서초구 방배천로 11 SK리더스뷰 6층",
+  "lat": 37.4776551,
+  "lng": 126.9822232,
+  "category": "양식",
+  "priceRange": "코스 2만원대",
+  "parking": true,
+  "reservation": "네이버 예약",
+  "naverUrl": "https://naver.me/5GvN8zKd",
+  "hasRoom": false,
+  "notes": "코스에 커피까지 포함",
+  "image": "./images/올리브에비뉴.jpg",
+  "menuImage": "./images/올리브에비뉴_메뉴.jpg"
+}
+]
